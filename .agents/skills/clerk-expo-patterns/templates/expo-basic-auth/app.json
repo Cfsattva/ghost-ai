@@ -2,7 +2,7 @@
   "expo": {
     "name": "clerk-expo",
     "slug": "clerk-expo",
-    "scheme": "clerkexpo",
+    "scheme": "myapp",
     "plugins": ["expo-secure-store", "@clerk/expo"]
   }
 }
