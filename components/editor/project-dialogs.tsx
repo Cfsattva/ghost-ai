@@ -10,10 +10,10 @@ import {
 } from "@/components/editor/editor-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { UseProjectDialogsResult } from "@/hooks/use-project-dialogs";
+import type { UseProjectActionsResult } from "@/hooks/use-project-actions";
 
 interface ProjectDialogsProps {
-  state: UseProjectDialogsResult;
+  state: UseProjectActionsResult;
 }
 
 export function ProjectDialogs({ state }: ProjectDialogsProps) {
@@ -55,9 +55,7 @@ export function ProjectDialogs({ state }: ProjectDialogsProps) {
                 value={name}
                 onChange={(event) => setName(event.target.value)}
               />
-              <p className="text-sm text-copy-muted">
-                /{slugPreview || "project-slug"}
-              </p>
+              <p className="text-sm text-copy-muted">/{slugPreview}</p>
             </div>
             <EditorDialogFooter>
               <Button type="submit" disabled={!name.trim() || isLoading}>

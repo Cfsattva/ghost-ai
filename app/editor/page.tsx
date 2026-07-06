@@ -1,33 +1,25 @@
-"use client";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
-import { useState } from "react";
+import { EditorShell } from "@/components/editor/editor-shell";
+import { getOwnedProjects, getSharedProjects } from "@/lib/projects";
 
-import { EditorHome } from "@/components/editor/editor-home";
-import { EditorNavbar } from "@/components/editor/editor-navbar";
-import { ProjectDialogs } from "@/components/editor/project-dialogs";
-import { ProjectSidebar } from "@/components/editor/project-sidebar";
-import { useProjectDialogs } from "@/hooks/use-project-dialogs";
+export default async function EditorPage() {
+  const { userId } = await auth();
 
-export default function EditorPage() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const projectDialogs = useProjectDialogs();
+  if (!userId) {
+    redirect("/sign-in");
+  }
+
+  const user = await currentUser();
+  const email = user?.primaryEmailAddress?.emailAddress ?? null;
+
+  const [ownedProjects, sharedProjects] = await Promise.all([
+    getOwnedProjects(userId),
+    getSharedProjects(email),
+  ]);
 
   return (
-    <div className="flex h-screen flex-col">
-      <EditorNavbar
-        isSidebarOpen={isSidebarOpen}
-        onToggleSidebar={() => setIsSidebarOpen((open) => !open)}
-      />
-      <ProjectSidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        projects={projectDialogs.projects}
-        onCreateProject={projectDialogs.openCreateDialog}
-        onRenameProject={projectDialogs.openRenameDialog}
-        onDeleteProject={projectDialogs.openDeleteDialog}
-      />
-      <EditorHome onCreateProject={projectDialogs.openCreateDialog} />
-      <ProjectDialogs state={projectDialogs} />
-    </div>
+    <EditorShell ownedProjects={ownedProjects} sharedProjects={sharedProjects} />
   );
 }
