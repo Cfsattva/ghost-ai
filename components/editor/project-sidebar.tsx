@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { MoreVertical, Pencil, Plus, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -10,31 +11,35 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Project } from "@/hooks/use-project-dialogs";
+import type { ProjectSummary } from "@/lib/projects";
 import { cn } from "@/lib/utils";
 
 interface ProjectSidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  projects: Project[];
+  ownedProjects: ProjectSummary[];
+  sharedProjects: ProjectSummary[];
   onCreateProject: () => void;
-  onRenameProject: (project: Project) => void;
-  onDeleteProject: (project: Project) => void;
+  onRenameProject: (project: ProjectSummary) => void;
+  onDeleteProject: (project: ProjectSummary) => void;
 }
 
 function ProjectListItem({
   project,
-  onRenameProject,
-  onDeleteProject,
+  actions,
 }: {
-  project: Project;
-  onRenameProject: (project: Project) => void;
-  onDeleteProject: (project: Project) => void;
+  project: ProjectSummary;
+  actions?: { onRename: () => void; onDelete: () => void };
 }) {
   return (
     <div className="group flex items-center justify-between gap-2 rounded-xl px-2.5 py-1.5 hover:bg-subtle">
-      <span className="truncate text-sm text-copy-primary">{project.name}</span>
-      {project.isOwner && (
+      <Link
+        href={`/editor/${project.id}`}
+        className="truncate text-sm text-copy-primary"
+      >
+        {project.name}
+      </Link>
+      {actions && (
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
@@ -48,14 +53,11 @@ function ProjectListItem({
             <MoreVertical className="h-4 w-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => onRenameProject(project)}>
+            <DropdownMenuItem onClick={actions.onRename}>
               <Pencil className="h-4 w-4" />
               Rename
             </DropdownMenuItem>
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => onDeleteProject(project)}
-            >
+            <DropdownMenuItem variant="destructive" onClick={actions.onDelete}>
               <Trash2 className="h-4 w-4" />
               Delete
             </DropdownMenuItem>
@@ -69,14 +71,12 @@ function ProjectListItem({
 export function ProjectSidebar({
   isOpen,
   onClose,
-  projects,
+  ownedProjects,
+  sharedProjects,
   onCreateProject,
   onRenameProject,
   onDeleteProject,
 }: ProjectSidebarProps) {
-  const ownedProjects = projects.filter((project) => project.isOwner);
-  const sharedProjects = projects.filter((project) => !project.isOwner);
-
   return (
     <>
       {isOpen && (
@@ -127,8 +127,10 @@ export function ProjectSidebar({
                   <ProjectListItem
                     key={project.id}
                     project={project}
-                    onRenameProject={onRenameProject}
-                    onDeleteProject={onDeleteProject}
+                    actions={{
+                      onRename: () => onRenameProject(project),
+                      onDelete: () => onDeleteProject(project),
+                    }}
                   />
                 ))}
               </div>
@@ -145,12 +147,7 @@ export function ProjectSidebar({
             {sharedProjects.length > 0 ? (
               <div className="flex flex-col gap-0.5">
                 {sharedProjects.map((project) => (
-                  <ProjectListItem
-                    key={project.id}
-                    project={project}
-                    onRenameProject={onRenameProject}
-                    onDeleteProject={onDeleteProject}
-                  />
+                  <ProjectListItem key={project.id} project={project} />
                 ))}
               </div>
             ) : (
